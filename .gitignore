@@ -1,0 +1,12 @@
+# Secrets and env
+.env
+secrets/
+
+# Persistent data
+var/lib/
+
+# Notebook checkpoints
+**/.ipynb_checkpoints
+
+# OS files
+.DS_Store

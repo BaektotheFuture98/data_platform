@@ -1,0 +1,104 @@
+name: datalakehouse
+
+services:
+  spark-iceberg:
+    image: tabulario/spark-iceberg
+    container_name: spark-iceberg
+    depends_on:
+      - iceberg-rest
+      - minio
+    networks:
+      - lakehouse
+    ports:
+      - "8888:8888"
+      - "8080:8080"
+      - "10000:10000"
+      - "10001:10001"
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-password}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      SPARK_CONF_DIR: /home/iceberg/config
+    volumes:
+      - ./configs/spark:/home/iceberg/config:ro
+      - ./workspace/notebooks:/home/iceberg/notebooks/notebooks
+      - ./workspace/scripts:/home/iceberg/scripts
+
+  iceberg-rest:
+    image: apache/iceberg-rest-fixture
+    container_name: iceberg-rest
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - lakehouse
+    ports:
+      - "8181:8181"
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-password}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      CATALOG_WAREHOUSE: ${CATALOG_WAREHOUSE:-s3://warehouse/}
+      CATALOG_IO__IMPL: org.apache.iceberg.aws.s3.S3FileIO
+      CATALOG_S3_ENDPOINT: ${S3_ENDPOINT:-http://object-store:9000}
+      CATALOG_S3_PATH__STYLE__ACCESS: "true"
+      CATALOG_JDBC_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-iceberg_catalog}
+      CATALOG_JDBC_USER: ${POSTGRES_USER:-iceberg}
+      CATALOG_JDBC_PASSWORD: ${POSTGRES_PASSWORD:-iceberg}
+      CATALOG_JDBC_DRIVER: org.postgresql.Driver
+    volumes:
+      - ./configs/iceberg-rest:/etc/iceberg-rest:ro
+
+  postgres:
+    image: postgres:15
+    container_name: iceberg-postgres
+    networks:
+      - lakehouse
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-iceberg}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iceberg}
+      POSTGRES_DB: ${POSTGRES_DB:-iceberg_catalog}
+    volumes:
+      - ./configs/postgres/initdb:/docker-entrypoint-initdb.d:ro
+      - ./var/lib/postgres:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    networks:
+      lakehouse:
+        aliases:
+          - object-store
+          - warehouse.minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+      MINIO_DOMAIN: minio
+      MINIO_CONFIG_ENV_FILE: /etc/minio/minio.env
+    command: ["server", "/data", "--console-address", ":9001"]
+    volumes:
+      - ./configs/minio/minio.env:/etc/minio/minio.env:ro
+      - ./var/lib/minio:/data
+
+  mc:
+    image: minio/mc
+    container_name: mc
+    depends_on:
+      - minio
+    networks:
+      - lakehouse
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+    entrypoint: ["/bin/sh", "/etc/mc/init-warehouse.sh"]
+    volumes:
+      - ./configs/mc:/etc/mc:ro
+      - ./configs/minio/policies:/etc/minio/policies:ro
+
+networks:
+  lakehouse:
