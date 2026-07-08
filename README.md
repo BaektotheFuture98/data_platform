@@ -91,6 +91,7 @@ Default local credentials are defined in `.env.example`.
 - `configs/mc/init-warehouse.sh`: creates the MinIO `warehouse` bucket
 
 Runtime data is stored under `var/lib/` and ignored by git.
+Jupyter notebooks are stored under `workspace/notebooks/`.
 
 ## Learning Notes
 

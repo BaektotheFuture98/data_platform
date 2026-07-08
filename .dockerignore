@@ -1,0 +1,6 @@
+.git
+.env
+var/
+workspace/notebooks/.ipynb_checkpoints/
+**/__pycache__/
+**/.DS_Store
