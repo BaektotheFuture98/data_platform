@@ -1,9 +1,9 @@
-ARG SPARK_BASE_IMAGE=apache/spark:3.5.6-scala2.12-java17-python3-ubuntu
+ARG SPARK_BASE_IMAGE=apache/spark:4.0.3-scala2.13-java17-python3-ubuntu
 FROM ${SPARK_BASE_IMAGE}
 
-ARG ICEBERG_VERSION=1.9.2
-ARG SPARK_MAJOR_MINOR=3.5
-ARG SCALA_BINARY_VERSION=2.12
+ARG ICEBERG_VERSION=1.10.1
+ARG SPARK_MAJOR_MINOR=4.0
+ARG SCALA_BINARY_VERSION=2.13
 
 USER root
 
@@ -15,13 +15,15 @@ ADD https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-${SP
 ADD https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/${ICEBERG_VERSION}/iceberg-aws-bundle-${ICEBERG_VERSION}.jar /opt/spark/jars/
 
 RUN chmod 0644 /opt/spark/jars/iceberg-*.jar \
+    && py4j_zip="$(find /opt/spark/python/lib -maxdepth 1 -name 'py4j-*-src.zip' | head -n 1)" \
+    && ln -sf "${py4j_zip}" /opt/spark/python/lib/py4j-src.zip \
     && python3 -m pip install --no-cache-dir jupyterlab pyiceberg[s3fs,pyarrow]
 
 ENV SPARK_HOME=/opt/spark \
     HOME=/home/iceberg \
     PYSPARK_PYTHON=python3 \
     PYSPARK_DRIVER_PYTHON=python3 \
-    PYTHONPATH=/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.7-src.zip \
+    PYTHONPATH=/opt/spark/python:/opt/spark/python/lib/py4j-src.zip \
     PATH=/opt/spark/bin:/opt/spark/sbin:${PATH}
 
 RUN mkdir -p /home/iceberg/notebooks /home/iceberg/scripts /home/iceberg/spark-events \

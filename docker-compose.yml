@@ -6,11 +6,11 @@ services:
       context: .
       dockerfile: docker/spark/Dockerfile
       args:
-        SPARK_BASE_IMAGE: ${SPARK_BASE_IMAGE:-apache/spark:3.5.6-scala2.12-java17-python3-ubuntu}
-        ICEBERG_VERSION: ${ICEBERG_VERSION:-1.9.2}
-        SPARK_MAJOR_MINOR: ${SPARK_MAJOR_MINOR:-3.5}
-        SCALA_BINARY_VERSION: ${SCALA_BINARY_VERSION:-2.12}
-    image: datalakehouse/spark-iceberg:${SPARK_ICEBERG_IMAGE_TAG:-spark-3.5.6-iceberg-1.9.2}
+        SPARK_BASE_IMAGE: ${SPARK_BASE_IMAGE:-apache/spark:4.0.3-scala2.13-java17-python3-ubuntu}
+        ICEBERG_VERSION: ${ICEBERG_VERSION:-1.10.1}
+        SPARK_MAJOR_MINOR: ${SPARK_MAJOR_MINOR:-4.0}
+        SCALA_BINARY_VERSION: ${SCALA_BINARY_VERSION:-2.13}
+    image: datalakehouse/spark-iceberg:${SPARK_ICEBERG_IMAGE_TAG:-spark-4.0.3-iceberg-1.10.1}
     container_name: spark-iceberg
     depends_on:
       - iceberg-rest
@@ -37,8 +37,8 @@ services:
       context: .
       dockerfile: docker/iceberg-rest/Dockerfile
       args:
-        ICEBERG_REST_BASE_IMAGE: ${ICEBERG_REST_BASE_IMAGE:-apache/iceberg-rest-fixture:1.9.2}
-    image: datalakehouse/iceberg-rest:${ICEBERG_REST_IMAGE_TAG:-1.9.2}
+        ICEBERG_REST_BASE_IMAGE: ${ICEBERG_REST_BASE_IMAGE:-apache/iceberg-rest-fixture:1.10.1}
+    image: datalakehouse/iceberg-rest:${ICEBERG_REST_IMAGE_TAG:-1.10.1}
     container_name: iceberg-rest
     depends_on:
       - postgres
