@@ -6,11 +6,11 @@ services:
       context: .
       dockerfile: docker/spark/Dockerfile
       args:
-        SPARK_BASE_IMAGE: ${SPARK_BASE_IMAGE:-apache/spark:4.0.3-scala2.13-java17-python3-ubuntu}
-        ICEBERG_VERSION: ${ICEBERG_VERSION:-1.10.1}
-        SPARK_MAJOR_MINOR: ${SPARK_MAJOR_MINOR:-4.0}
-        SCALA_BINARY_VERSION: ${SCALA_BINARY_VERSION:-2.13}
-    image: datalakehouse/spark-iceberg:${SPARK_ICEBERG_IMAGE_TAG:-spark-4.0.3-iceberg-1.10.1}
+        SPARK_BASE_IMAGE: apache/spark:${SPARK_VERSION}-scala${SCALA_BINARY_VERSION}-java17-python3-ubuntu
+        ICEBERG_VERSION: ${ICEBERG_VERSION}
+        SPARK_MAJOR_MINOR: ${SPARK_MAJOR_MINOR}
+        SCALA_BINARY_VERSION: ${SCALA_BINARY_VERSION}
+    image: datalakehouse/spark-iceberg:spark${SPARK_VERSION}-iceberg${ICEBERG_VERSION}
     container_name: spark-iceberg
     depends_on:
       - iceberg-rest
@@ -23,9 +23,9 @@ services:
       - "10000:10000"
       - "10001:10001"
     environment:
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-password}
-      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
       SPARK_CONF_DIR: /home/iceberg/config
     volumes:
       - ./configs/spark:/home/iceberg/config:ro
@@ -33,12 +33,7 @@ services:
       - ./workspace/scripts:/home/iceberg/scripts
 
   iceberg-rest:
-    build:
-      context: .
-      dockerfile: docker/iceberg-rest/Dockerfile
-      args:
-        ICEBERG_REST_BASE_IMAGE: ${ICEBERG_REST_BASE_IMAGE:-apache/iceberg-rest-fixture:1.10.1}
-    image: datalakehouse/iceberg-rest:${ICEBERG_REST_IMAGE_TAG:-1.10.1}
+    image: apache/iceberg-rest-fixture:${ICEBERG_VERSION}
     container_name: iceberg-rest
     depends_on:
       - postgres
@@ -48,16 +43,16 @@ services:
     ports:
       - "8181:8181"
     environment:
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-password}
-      AWS_REGION: ${AWS_REGION:-us-east-1}
-      CATALOG_WAREHOUSE: ${CATALOG_WAREHOUSE:-s3://warehouse/}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      CATALOG_WAREHOUSE: ${CATALOG_WAREHOUSE}
       CATALOG_IO__IMPL: org.apache.iceberg.aws.s3.S3FileIO
-      CATALOG_S3_ENDPOINT: ${S3_ENDPOINT:-http://object-store:9000}
+      CATALOG_S3_ENDPOINT: ${S3_ENDPOINT}
       CATALOG_S3_PATH__STYLE__ACCESS: "true"
-      CATALOG_JDBC_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-iceberg_catalog}
-      CATALOG_JDBC_USER: ${POSTGRES_USER:-iceberg}
-      CATALOG_JDBC_PASSWORD: ${POSTGRES_PASSWORD:-iceberg}
+      CATALOG_JDBC_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      CATALOG_JDBC_USER: ${POSTGRES_USER}
+      CATALOG_JDBC_PASSWORD: ${POSTGRES_PASSWORD}
       CATALOG_JDBC_DRIVER: org.postgresql.Driver
     volumes:
       - ./configs/iceberg-rest:/etc/iceberg-rest:ro
@@ -70,9 +65,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-iceberg}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iceberg}
-      POSTGRES_DB: ${POSTGRES_DB:-iceberg_catalog}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - ./configs/postgres/initdb:/docker-entrypoint-initdb.d:ro
       - ./var/lib/postgres:/var/lib/postgresql/data
@@ -89,8 +84,8 @@ services:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_DOMAIN: minio
       MINIO_CONFIG_ENV_FILE: /etc/minio/minio.env
     command: ["server", "/data", "--console-address", ":9001"]
@@ -106,8 +101,8 @@ services:
     networks:
       - lakehouse
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     entrypoint: ["/bin/sh", "/etc/mc/init-warehouse.sh"]
     volumes:
       - ./configs/mc:/etc/mc:ro

@@ -1,2 +1,0 @@
-ARG ICEBERG_REST_BASE_IMAGE=apache/iceberg-rest-fixture:1.9.2
-FROM ${ICEBERG_REST_BASE_IMAGE}
