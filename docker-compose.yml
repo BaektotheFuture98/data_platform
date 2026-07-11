@@ -26,14 +26,19 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION}
-      SPARK_CONF_DIR: /home/iceberg/config
     volumes:
-      - ./configs/spark:/home/iceberg/config:ro
+      - ./configs/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./configs/spark/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
       - ./workspace/notebooks:/home/iceberg/notebooks
       - ./workspace/scripts:/home/iceberg/scripts
 
   iceberg-rest:
-    image: apache/iceberg-rest-fixture:${ICEBERG_VERSION}
+    build:
+      context: .
+      dockerfile: docker/iceberg-rest/Dockerfile
+      args:
+        ICEBERG_REST_IMAGE: apache/iceberg-rest-fixture:latest
+    image: datalakehouse/iceberg-rest:iceberg${ICEBERG_VERSION}
     container_name: iceberg-rest
     depends_on:
       - postgres
@@ -50,12 +55,10 @@ services:
       CATALOG_IO__IMPL: org.apache.iceberg.aws.s3.S3FileIO
       CATALOG_S3_ENDPOINT: ${S3_ENDPOINT}
       CATALOG_S3_PATH__STYLE__ACCESS: "true"
-      CATALOG_JDBC_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      CATALOG_URI: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       CATALOG_JDBC_USER: ${POSTGRES_USER}
       CATALOG_JDBC_PASSWORD: ${POSTGRES_PASSWORD}
       CATALOG_JDBC_DRIVER: org.postgresql.Driver
-    volumes:
-      - ./configs/iceberg-rest:/etc/iceberg-rest:ro
 
   postgres:
     image: postgres:15
@@ -69,6 +72,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
+        # Empty data directory on first startup: PostgreSQL runs *.sql files here.
       - ./configs/postgres/initdb:/docker-entrypoint-initdb.d:ro
       - ./var/lib/postgres:/var/lib/postgresql/data
 

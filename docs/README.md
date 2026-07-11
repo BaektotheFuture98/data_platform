@@ -36,7 +36,6 @@ Notes
 Structure
 - `docker-compose.yml`: Spark, Iceberg REST, PostgreSQL, MinIO, MinIO client, and network definitions
 - `configs/spark/`: Spark and Iceberg client settings mounted into the Spark container
-- `configs/iceberg-rest/`: Iceberg REST catalog reference settings
 - `configs/postgres/initdb/`: PostgreSQL initialization SQL
 - `configs/minio/minio.env`: mounted MinIO server settings
 - `configs/minio/policies/`: MinIO bucket policies used by `mc`
