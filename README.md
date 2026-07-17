@@ -80,6 +80,10 @@ Default local credentials are defined in `.env.example`.
 │   └── mc/
 ├── workspace/
 │   ├── notebooks/
+│   │   ├── admin/          # catalog and database administration
+│   │   ├── experiments/    # short-lived exploratory work
+│   │   ├── pipelines/      # end-to-end lakehouse flows
+│   │   └── tutorials/      # curated learning notebooks
 │   └── scripts/
 ├── var/
 │   └── lib/
@@ -97,7 +101,12 @@ Default local credentials are defined in `.env.example`.
 - `configs/mc/init-warehouse.sh`: creates the MinIO `warehouse` bucket
 
 Runtime data is stored under `var/lib/` and ignored by git.
-Jupyter notebooks are stored under `workspace/notebooks/`.
+Jupyter notebooks are stored under `workspace/notebooks/` and grouped by purpose:
+
+- `admin/`: catalog and database setup or cleanup
+- `experiments/`: small, disposable experiments
+- `pipelines/`: reusable end-to-end examples such as the medallion flow
+- `tutorials/`: curated upstream Iceberg and PyIceberg learning notebooks
 
 ## Learning Notes
 
